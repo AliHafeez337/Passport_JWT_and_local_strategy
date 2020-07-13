@@ -8,10 +8,23 @@ module.exports = {
       } else {
         req.token = req.headers.authorization.slice(7)
   
-        for (let i in req.user.tokens){
-          if ( req.token === req.user.tokens[i].token ){
-            return next();
+        if (req.user.tokens.length){
+          for (let i in req.user.tokens){
+            if ( req.token === req.user.tokens[i].token ){
+              return next();
+            }
+
+            // If token not found in last loop
+            if (req.user.tokens.length === +i + 1){
+              res.status(401).send({
+                'errmsg': "Unauthorized, Token doesn't exist. Please, login..."
+              });
+            }
           }
+        } else {
+          res.status(401).send({
+            'errmsg': "Unauthorized, Token doesn't exist. Please, login..."
+          });
         }
       }
     } else {
