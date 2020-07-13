@@ -13,7 +13,7 @@ const { ensureAuthenticated } = require('../auth/auth');
 // const { JWTsecret } = require('../config/variables');
 
 // A hash generator promise for password...
-var genHash = async (password) => {
+var genHash = password => {
   return new Promise(async (resolve, reject) => {
     try {
       bcrypt.genSalt(9, (err, salt) => {
@@ -65,7 +65,7 @@ router.post('/register', (req, res) => {
         });
 
         genHash(newUser.password)
-          .then(async (hash) => {
+          .then(async hash => {
             newUser.password = hash;
             newUser
               .save()
@@ -106,15 +106,21 @@ router.post('/login', (req, res, next) => {
       'errmsg': "Failed login attempt"
     })}
     else{
-      console.log(user)
-      // generate a signed son web token with the contents of user object and return it in the response           
-      const token = await user.generateAuthToken();
-
-      return res.status(200).send({
-        "msg": "Your are loged in...",
-        user, 
-        token
-      })
+      if (user.archived){
+        return res.status(401).send({
+          "errmsg": "You are archived so can not login..."
+        })
+      } else {
+        console.log(user)
+        // generate a signed json web token with the contents of user object and return it in the response           
+        const token = await user.generateAuthToken();
+  
+        return res.status(200).send({
+          "msg": "Your are loged in...",
+          user, 
+          token
+        })
+      }
     }
   }) (req, res, next);
 });
