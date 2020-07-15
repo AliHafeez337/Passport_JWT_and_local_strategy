@@ -82,10 +82,11 @@ router.post(
             });
           });
       }
+    } else {
+      res.status(400).send({
+        errmsg: "Please provide complete data.",
+      });
     }
-    res.status(400).send({
-      errmsg: "Please provide complete data.",
-    });
   }
 )
 
@@ -162,16 +163,23 @@ router.delete(
   adminAuthenticated, 
   async (req, res) => {
     const id = req.params.id;
-    var doc = await User.deleteOne({ _id: id });
-    console.log(doc);
-    if (doc.deletedCount == 0){
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)){ // if object id is not valid
       res.status(400).send({
-        'errmsg': "Sorry, unable delete user."
+        'errmsg': "Valid Id must be provided..."
       })
     } else {
-      res.status(200).send({
-        'msg': "User deleted successfully!"
-      }) 
+      var doc = await User.deleteOne({ _id: id });
+      console.log(doc);
+      if (doc.deletedCount == 0){
+        res.status(400).send({
+          'errmsg': "Sorry, unable delete user."
+        })
+      } else {
+        res.status(200).send({
+          'msg': "User deleted successfully!"
+        }) 
+      }
     }
   }
 )
